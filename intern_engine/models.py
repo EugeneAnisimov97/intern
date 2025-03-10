@@ -14,6 +14,6 @@ class Schedules(Base):
     __tablename__ = 'schedules'
     id = Column(Integer, primary_key=True, index=True)
     medicine = Column(String, index=True)
-    periodicity = Column(JSONB, index=True)
+    periodicity = Column(Integer)
     duration = Column(Integer)
     user_id = Column(Integer, ForeignKey("users.id"), index=True)

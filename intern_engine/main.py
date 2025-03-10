@@ -1,9 +1,10 @@
-from fastapi import FastAPI
+from fastapi import FastAPI,  HTTPException
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
-from .models import Schedules, Base
+from .models import Users, Schedules, Base
 from dotenv import load_dotenv
+from sqlalchemy import select
 import os
 
 load_dotenv()
@@ -22,25 +23,51 @@ async def startup():
 async def shutdown():
     await engine.dispose()
 
-class ScheduleCreate(BaseModel):
+class SchedulesCreate(BaseModel):
     medicine: str
-    periodicity: dict
+    periodicity: int
     duration: int
     user_id: int
 
-class ScheduleResponse(BaseModel):
+class SchedulesResponse(BaseModel):
     id: int
+    
+class UserScheduleResponse(BaseModel):
+    medicine: str
+    periodicity: int
+    duration: int
 
-@app.post('/schedule', response_model=ScheduleResponse)
-async def create_schedule(schedule: ScheduleCreate):
-    plan = Schedules(
+@app.post('/schedules', response_model=SchedulesResponse)
+async def create_schedule(schedule: SchedulesCreate):
+    async with async_session() as session: 
+        user = await session.execute(select(Users).where(Users.id == schedule.user_id))
+        if not user.scalars().first():
+            raise HTTPException(status_code=404, detail="user not found") 
+        plan = Schedules(
         medicine=schedule.medicine,
         periodicity=schedule.periodicity,
         duration=schedule.duration,
         user_id=schedule.user_id
-    )
-    async with async_session() as session:     
+        )
         session.add(plan)
         await session.commit()
         await session.refresh(plan)
     return {'id': plan.id}
+
+@app.get('/schedules', response_model=list[int])
+async def get_user_schedules(user_id: int):
+    async with async_session() as session:
+        user = await session.execute(select(Users).where(Users.id == user_id))
+        if not user.scalars().first():
+            raise HTTPException(status_code=404, detail="user not found") 
+        schedules = await session.execute(
+            select(Schedules).where(Schedules.user_id == user_id)
+        )
+        schedules = schedules.scalars().all()
+        if not schedules:
+            raise HTTPException(status_code=404, detail="schedules not found")
+        return [item.id for item in schedules]
+
+@app.get('/schedule', )
+async def read_schedule(user_id: int, schedule_id: int):
+    pass
