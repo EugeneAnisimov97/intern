@@ -3,9 +3,11 @@ from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
 from .models import Users, Schedules, Base
+from .date_utils import get_schedule
 from dotenv import load_dotenv
 from sqlalchemy import select
 import os
+
 
 load_dotenv()
 DATABASE_URL = os.getenv('DATABASE_URL')
@@ -31,14 +33,14 @@ class SchedulesCreate(BaseModel):
 
 class SchedulesResponse(BaseModel):
     id: int
-    
-class UserScheduleResponse(BaseModel):
-    medicine: str
-    periodicity: int
-    duration: int
 
-@app.post('/schedules', response_model=SchedulesResponse)
+class NextTakingResponse(BaseModel):
+    medicine: str
+    shedule: list[str]
+
+@app.post('/schedule', response_model=SchedulesResponse)
 async def create_schedule(schedule: SchedulesCreate):
+    '''Создает расписание приема лекарств на день'''
     async with async_session() as session: 
         user = await session.execute(select(Users).where(Users.id == schedule.user_id))
         if not user.scalars().first():
@@ -56,6 +58,7 @@ async def create_schedule(schedule: SchedulesCreate):
 
 @app.get('/schedules', response_model=list[int])
 async def get_user_schedules(user_id: int):
+    '''Возвращает список расписаний пользователя'''
     async with async_session() as session:
         user = await session.execute(select(Users).where(Users.id == user_id))
         if not user.scalars().first():
@@ -68,6 +71,16 @@ async def get_user_schedules(user_id: int):
             raise HTTPException(status_code=404, detail="schedules not found")
         return [item.id for item in schedules]
 
-@app.get('/schedule', )
+@app.get('/schedule', response_model=list[str])
 async def read_schedule(user_id: int, schedule_id: int):
+    '''Вовзвращает данные о выбранном расписании с графиком приема на день'''
+    async with async_session() as session: 
+        shedule = await session.execute(select(Schedules).where((Schedules.id == schedule_id) & (Schedules.user_id == user_id)))
+        shedule = shedule.scalars().first()
+        if not shedule:
+            raise HTTPException(status_code=404, detail='Shedule not found')
+        return get_schedule(shedule.periodicity, shedule.duration)
+
+@app.get('/next_taking', response_class=NextTakingResponse)
+async def get_next_madicine():
     pass

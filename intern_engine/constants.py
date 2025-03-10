@@ -1,0 +1,2 @@
+START_TIME = '8:00'
+STOP_TIME = '22:00'

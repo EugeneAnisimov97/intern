@@ -15,5 +15,5 @@ class Schedules(Base):
     id = Column(Integer, primary_key=True, index=True)
     medicine = Column(String, index=True)
     periodicity = Column(Integer)
-    duration = Column(Integer)
+    duration = Column(Integer, nullable=True, default=None)
     user_id = Column(Integer, ForeignKey("users.id"), index=True)
