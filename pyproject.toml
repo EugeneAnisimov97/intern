@@ -1,7 +1,7 @@
 [project]
 name = "intern"
 version = "0.1.0"
-description = "Add your description here"
+description = "test task for KODE"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [

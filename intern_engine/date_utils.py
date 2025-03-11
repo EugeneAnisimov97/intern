@@ -2,7 +2,20 @@ from datetime import datetime, timedelta
 from .constants import START_TIME, STOP_TIME
 
 
-def get_schedule(peridicity: int, duration: None) -> list[str]:
+def rounding_time(time_str: str) -> str:
+    format = '%H:%M'
+    time = datetime.strptime(time_str, format)
+    minutes = time.minute
+    hours = time.hour
+    rounded_minutes = ((minutes + 14) // 15) * 15
+    if rounded_minutes >= 60:
+        hours += 1
+        rounded_minutes = 0
+    rounded_time = time.replace(hour=hours, minute=rounded_minutes)
+    return rounded_time.strftime(format)
+
+
+def get_schedule(peridicity: int, duration: int | None) -> list[str]:
     format = '%H:%M'
     start = datetime.strptime(START_TIME, format)
     stop = datetime.strptime(STOP_TIME, format)
@@ -21,5 +34,14 @@ def get_schedule(peridicity: int, duration: None) -> list[str]:
         date = current_date + timedelta(days=day)
         for i in range(peridicity):
             minutes = start + timedelta(minutes=interval * i)
-            times.append(f'{date.strftime("%Y-%m-%d")} {minutes.strftime(format)}')
+            times.append(f'{date.strftime("%Y-%m-%d")} {rounding_time(minutes.strftime(format))}')
     return times
+
+
+# def get_next_appointment(curr_date: str, medicine: str, peridicity: int, duraction: int | None) -> list[str]:
+#     taking = []
+#     schedule_for_user = get_schedule(peridicity, duraction)
+#     for item in schedule_for_user:
+#         if item[:13] == curr_date:
+#             taking.append(f'{str(medicine)} - {item}')
+#     return taking
