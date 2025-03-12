@@ -1,10 +1,10 @@
 from datetime import datetime, timedelta
-from .constants import START_TIME, STOP_TIME
+from .constants import START_TIME, STOP_TIME, PERIOD
 
 
-def rounding_time(time_str: str) -> str:
+def rounding_time(time: str) -> str:
     format = '%H:%M'
-    time = datetime.strptime(time_str, format)
+    time = datetime.strptime(time, format)
     minutes = time.minute
     hours = time.hour
     rounded_minutes = ((minutes + 14) // 15) * 15
@@ -15,7 +15,7 @@ def rounding_time(time_str: str) -> str:
     return rounded_time.strftime(format)
 
 
-def get_schedule(peridicity: int, duration: int | None) -> list[str]:
+def get_schedule(peridicity: int) -> list[str]:
     format = '%H:%M'
     start = datetime.strptime(START_TIME, format)
     stop = datetime.strptime(STOP_TIME, format)
@@ -23,25 +23,20 @@ def get_schedule(peridicity: int, duration: int | None) -> list[str]:
         raise ValueError('the frequency must be greater than 1')
     total_minutes = (stop - start).total_seconds() // 60
     interval = total_minutes / (peridicity - 1) if peridicity > 1 else 0
-    current_date = datetime.today()
     times = []
-    if duration is None or duration > 365:
-        for i in range(peridicity):
-            minutes = start + timedelta(minutes=interval * i)
-            times.append(f'everyday  {minutes.strftime(format)}')
-        return times
-    for day in range(duration):
-        date = current_date + timedelta(days=day)
-        for i in range(peridicity):
-            minutes = start + timedelta(minutes=interval * i)
-            times.append(f'{date.strftime("%Y-%m-%d")} {rounding_time(minutes.strftime(format))}')
+    for i in range(peridicity):
+        minutes = start + timedelta(minutes=interval * i)
+        times.append(f'{rounding_time(minutes.strftime(format))}')
     return times
 
 
-# def get_next_appointment(curr_date: str, medicine: str, peridicity: int, duraction: int | None) -> list[str]:
-#     taking = []
-#     schedule_for_user = get_schedule(peridicity, duraction)
-#     for item in schedule_for_user:
-#         if item[:13] == curr_date:
-#             taking.append(f'{str(medicine)} - {item}')
-#     return taking
+def get_time_period(schedule: list, PERIOD=PERIOD) -> list[str]:
+    start_period = datetime.now()
+    end_period = start_period + timedelta(minutes=PERIOD)
+    taking = []
+    print(start_period, end_period)
+    for item in schedule:
+        corr_time = datetime.strptime(item, '%H:%M').time()
+        if start_period <= datetime.combine(start_period.date(), corr_time) <= end_period:
+            taking.append(item)
+    return taking

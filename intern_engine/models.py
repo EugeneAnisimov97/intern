@@ -1,7 +1,8 @@
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, DateTime
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy import ForeignKey
 from sqlalchemy.dialects.postgresql import JSONB #работает только с бд postgres
+from datetime import datetime
 
 class Base(DeclarativeBase):
     pass
@@ -17,3 +18,6 @@ class Schedules(Base):
     periodicity = Column(Integer)
     duration = Column(Integer, nullable=True, default=None)
     user_id = Column(Integer, ForeignKey("users.id"), index=True)
+    date_created = Column(DateTime, default=datetime.now, nullable=False)
+    is_active = Column(Integer, default=1)
+    
