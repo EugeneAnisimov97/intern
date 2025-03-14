@@ -32,7 +32,7 @@ def get_schedule_in_day(peridicity: int, medicine: str,) -> list[str]:
 
 def get_time_period(schedule: list, start_treatment: datetime, PERIOD=PERIOD) -> list[str]:
     '''Возвращает прием лекарств на ближайшее время заданное периодом'''
-    start_period = datetime.now() #  Начало периода будет задаваться через параметры конфигурации сервиса, а пока что так
+    start_period = datetime.now()  # Начало периода будет задаваться через параметры конфигурации сервиса, а пока что так
     end_period = start_period + timedelta(minutes=PERIOD)
     taking = []
     if start_period < start_treatment:

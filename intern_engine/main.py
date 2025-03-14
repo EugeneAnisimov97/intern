@@ -93,8 +93,7 @@ async def get_next_medicine(user_id: int):
             if schedule.is_active:
                 schedule_for_user = get_schedule_in_day(schedule.periodicity, schedule.medicine)
                 taking_time = get_time_period(schedule_for_user, schedule.start_treatment)  # Обращаю внимание, что если создали сегодня, лечение начнется со след. дня и ближайшую таблетку не получите
-                if taking_time:
-                    taking.extend(taking_time)
+                taking.extend(taking_time)
         if not taking:
             raise HTTPException(status_code=200, detail='На сегодня приема нет')
         return taking
