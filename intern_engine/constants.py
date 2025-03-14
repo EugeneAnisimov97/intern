@@ -1,3 +1,4 @@
 START_TIME = '8:00'
 STOP_TIME = '23:00'
 PERIOD = 60
+FORMAT = '%H:%M'

@@ -1,10 +1,10 @@
 from datetime import datetime, timedelta
-from .constants import START_TIME, STOP_TIME, PERIOD
+from .constants import START_TIME, STOP_TIME, PERIOD, FORMAT
 
 
 def rounding_time(time: str) -> str:
-    format = '%H:%M'
-    time = datetime.strptime(time, format)
+    '''Округление минут до кратности 15'''
+    time = datetime.strptime(time, FORMAT)
     minutes = time.minute
     hours = time.hour
     rounded_minutes = ((minutes + 14) // 15) * 15
@@ -12,31 +12,42 @@ def rounding_time(time: str) -> str:
         hours += 1
         rounded_minutes = 0
     rounded_time = time.replace(hour=hours, minute=rounded_minutes)
-    return rounded_time.strftime(format)
+    return rounded_time.strftime(FORMAT)
 
 
-def get_schedule(peridicity: int) -> list[str]:
-    format = '%H:%M'
-    start = datetime.strptime(START_TIME, format)
-    stop = datetime.strptime(STOP_TIME, format)
+def get_schedule_in_day(peridicity: int, medicine: str,) -> list[str]:
+    '''Создает расписание на день'''
+    start = datetime.strptime(START_TIME, FORMAT)
+    stop = datetime.strptime(STOP_TIME, FORMAT)
     if peridicity < 1:
-        raise ValueError('the frequency must be greater than 1')
+        raise ValueError('Периодичность приема болжна быть больше 1')
     total_minutes = (stop - start).total_seconds() // 60
     interval = total_minutes / (peridicity - 1) if peridicity > 1 else 0
     times = []
     for i in range(peridicity):
         minutes = start + timedelta(minutes=interval * i)
-        times.append(f'{rounding_time(minutes.strftime(format))}')
+        times.append(f'{medicine} - {rounding_time(minutes.strftime(FORMAT))}')
     return times
 
 
-def get_time_period(schedule: list, PERIOD=PERIOD) -> list[str]:
-    start_period = datetime.now()
+def get_time_period(schedule: list, start_treatment: datetime, PERIOD=PERIOD) -> list[str]:
+    '''Возвращает прием лекарств на ближайшее время заданное периодом'''
+    start_period = datetime.now() #  Начало периода будет задаваться через параметры конфигурации сервиса, а пока что так
     end_period = start_period + timedelta(minutes=PERIOD)
     taking = []
-    print(start_period, end_period)
+    if start_period < start_treatment:
+        return []
     for item in schedule:
-        corr_time = datetime.strptime(item, '%H:%M').time()
-        if start_period <= datetime.combine(start_period.date(), corr_time) <= end_period:
-            taking.append(item)
+        time_medicine = datetime.strptime(item[-5:], FORMAT).time()
+        if start_period <= datetime.combine(start_period.date(), time_medicine) <= end_period:
+            taking.append(f'{item}')
     return taking
+
+
+def check_actual(start_treatment: datetime, duration: int | None) -> bool:
+    '''Считает, что лечение начинается со следующего дня после выписки и проверяет его актуальность'''
+    curr_date = datetime.now()
+    stop_treatment = (start_treatment + timedelta(days=duration)).replace(hour=23, minute=59, second=59)
+    if curr_date < stop_treatment or duration is None:
+        return True
+    return False
