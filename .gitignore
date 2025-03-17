@@ -6,7 +6,7 @@ dist/
 wheels/
 *.egg-info
 database.py
-.gitigrone
+.gitignore
 
 # Virtual environments
 .venv
