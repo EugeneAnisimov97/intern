@@ -3,7 +3,7 @@ from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
 from intern_engine.models import Users, Schedules, Base
-from intern_engine.date_utils import get_schedule_in_day, get_time_period, check_actual
+from intern_engine.date_utils import get_schedule_on_day, get_next_appointment, check_actual
 from dotenv import load_dotenv
 from sqlalchemy import select
 import os
@@ -81,11 +81,11 @@ async def read_schedule(user_id: int, schedule_id: int):
         shedule = shedule.scalars().first()
         if not shedule:
             raise HTTPException(status_code=404, detail='Расписание не найдено')
-        return get_schedule_in_day(shedule.periodicity, shedule.medicine)
+        return get_schedule_on_day(shedule.periodicity, shedule.medicine)
 
 
 @app.get('/next_taking', response_model=list[str])
-async def get_next_medicine(user_id: int):
+async def get_next_appointment(user_id: int):
     '''Возвращает данные о таблетках, которые необходимо принять в ближайшие период'''
     async with async_session() as session:
         schedules = await session.execute(select(Schedules).where(Schedules.user_id == user_id))
@@ -98,8 +98,8 @@ async def get_next_medicine(user_id: int):
                 schedule.is_active = False
                 await session.commit()
             if schedule.is_active:
-                schedule_for_user = get_schedule_in_day(schedule.periodicity, schedule.medicine)
-                taking_time = get_time_period(schedule_for_user, schedule.start_treatment)  # Обращаю внимание, что если создали сегодня, лечение начнется со след. дня и ближайшую таблетку не получите
+                schedule_for_user = get_schedule_on_day(schedule.periodicity, schedule.medicine)
+                taking_time = get_next_appointment(schedule_for_user, schedule.start_treatment)  # Обращаю внимание, что если создали сегодня, лечение начнется со след. дня и ближайшую таблетку не получите
                 taking.extend(taking_time)
         if not taking:
             raise HTTPException(status_code=200, detail='На сегодня приема нет')

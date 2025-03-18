@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from .constants import START_TIME, STOP_TIME, PERIOD, FORMAT
 
 
-def rounding_time(time: str) -> str:
+def rounding_minutes(time: str) -> str:
     '''Округление минут до кратности 15'''
     time = datetime.strptime(time, FORMAT)
     minutes = time.minute
@@ -15,7 +15,7 @@ def rounding_time(time: str) -> str:
     return rounded_time.strftime(FORMAT)
 
 
-def get_schedule_in_day(peridicity: int, medicine: str,) -> list[str]:
+def get_schedule_on_day(peridicity: int, medicine: str,) -> list[str]:
     '''Создает расписание на день'''
     start = datetime.strptime(START_TIME, FORMAT)
     stop = datetime.strptime(STOP_TIME, FORMAT)
@@ -26,11 +26,11 @@ def get_schedule_in_day(peridicity: int, medicine: str,) -> list[str]:
     times = []
     for i in range(peridicity):
         minutes = start + timedelta(minutes=interval * i)
-        times.append(f'{medicine} - {rounding_time(minutes.strftime(FORMAT))}')
+        times.append(f'{medicine} - {rounding_minutes(minutes.strftime(FORMAT))}')
     return times
 
 
-def get_time_period(schedule: list, start_treatment: datetime, PERIOD=PERIOD) -> list[str]:
+def get_next_appointment(schedule: list, start_treatment: datetime, PERIOD=PERIOD) -> list[str]:
     '''Возвращает прием лекарств на ближайшее время заданное периодом'''
     start_period = datetime.now()  # Начало периода будет задаваться через параметры конфигурации сервиса, а пока что так
     end_period = start_period + timedelta(minutes=PERIOD)
@@ -46,8 +46,11 @@ def get_time_period(schedule: list, start_treatment: datetime, PERIOD=PERIOD) ->
 
 def check_actual(start_treatment: datetime, duration: int | None) -> bool:
     '''Считает, что лечение начинается со следующего дня после выписки и проверяет его актуальность'''
-    curr_date = datetime.now()
     stop_treatment = (start_treatment + timedelta(days=duration)).replace(hour=23, minute=59, second=59)
-    if curr_date < stop_treatment or duration is None:
+    if datetime.now() <= stop_treatment or duration is None:
         return True
     return False
+
+
+def calc_next_day():
+    return lambda:(datetime.now() + timedelta(days=1)).replace(hour=0, minute=0, second=0)

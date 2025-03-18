@@ -2,7 +2,7 @@ from sqlalchemy import Column, Integer, String, DateTime, Boolean
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy import ForeignKey
 from datetime import datetime, timedelta
-
+from intern_engine.date_utils import calc_next_day
 
 class Base(DeclarativeBase):
     pass
@@ -22,6 +22,4 @@ class Schedules(Base):
     user_id = Column(Integer, ForeignKey("users.id"), index=True)
     date_created = Column(DateTime, default=datetime.now, nullable=False, index=True)
     is_active = Column(Boolean, default=True, nullable=False)
-    start_treatment = Column(DateTime,
-                             default=lambda: (
-                                 (datetime.now() + timedelta(days=1)).replace(hour=0, minute=0, second=0)))
+    start_treatment = Column(DateTime,default=calc_next_day())
