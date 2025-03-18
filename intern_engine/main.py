@@ -20,6 +20,13 @@ app = FastAPI()
 async def startup():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+    async with engine.begin() as session:
+        for user_id in range(4):
+            user = await session.get(Users, user_id)
+            if not user:
+                create_user = Users(id=user_id)
+                session.add(create_user)
+                await session.commit()
 
 
 @app.on_event("shutdown")
