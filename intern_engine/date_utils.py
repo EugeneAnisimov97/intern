@@ -30,7 +30,7 @@ def get_schedule_on_day(peridicity: int, medicine: str,) -> list[str]:
     return times
 
 
-def get_next_appointment(schedule: list, start_treatment: datetime, PERIOD=PERIOD) -> list[str]:
+def get_appointment(schedule: list, start_treatment: datetime, PERIOD=PERIOD) -> list[str]:
     '''Возвращает прием лекарств на ближайшее время заданное периодом'''
     start_period = datetime.now()  # Начало периода будет задаваться через параметры конфигурации сервиса, а пока что так
     end_period = start_period + timedelta(minutes=PERIOD)

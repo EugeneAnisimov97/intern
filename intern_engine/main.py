@@ -3,7 +3,7 @@ from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
 from intern_engine.models import Users, Schedules, Base
-from intern_engine.date_utils import get_schedule_on_day, get_next_appointment, check_actual
+from intern_engine.date_utils import get_schedule_on_day, get_appointment, check_actual
 from dotenv import load_dotenv
 from sqlalchemy import select
 import os
@@ -99,7 +99,7 @@ async def get_next_appointment(user_id: int):
                 await session.commit()
             if schedule.is_active:
                 schedule_for_user = get_schedule_on_day(schedule.periodicity, schedule.medicine)
-                taking_time = get_next_appointment(schedule_for_user, schedule.start_treatment)  # Обращаю внимание, что если создали сегодня, лечение начнется со след. дня и ближайшую таблетку не получите
+                taking_time = get_appointment(schedule_for_user, schedule.start_treatment)  # Обращаю внимание, что если создали сегодня, лечение начнется со след. дня и ближайшую таблетку не получите
                 taking.extend(taking_time)
         if not taking:
             raise HTTPException(status_code=200, detail='На сегодня приема нет')
