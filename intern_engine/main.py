@@ -20,7 +20,7 @@ app = FastAPI()
 async def startup():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
-    async with engine.begin() as session:
+    async with async_session() as session:
         for user_id in range(4):
             user = await session.get(Users, user_id)
             if not user:
