@@ -3,7 +3,7 @@ from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
 from intern_engine.models import Users, Schedules, Base
-from intern_engine.date_utils import get_schedule_on_day, get_appointment, check_actual
+from intern_engine.date_utils import get_schedule_on_day, get_appointment, check_actual, sort_data
 from dotenv import load_dotenv
 from sqlalchemy import select
 import os
@@ -41,7 +41,7 @@ class SchedulesCreate(BaseModel):
     user_id: int
 
 
-@app.post('/schedule', response_model=int)
+@app.post('/schedule', response_model=dict)
 async def create_schedule(schedule: SchedulesCreate):
     '''Создает расписание приема лекарств'''
     async with async_session() as session:
@@ -57,7 +57,7 @@ async def create_schedule(schedule: SchedulesCreate):
         session.add(plan)
         await session.commit()
         await session.refresh(plan)
-    return plan.id
+    return {'id': plan.id}
 
 
 @app.get('/schedules', response_model=list[int])
@@ -103,4 +103,4 @@ async def get_next_appointment(user_id: int):
                 taking.extend(taking_time)
         if not taking:
             raise HTTPException(status_code=200, detail='На сегодня приема нет')
-        return taking
+        return sort_data(taking)

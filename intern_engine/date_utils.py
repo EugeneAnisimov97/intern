@@ -54,3 +54,7 @@ def check_actual(start_treatment: datetime, duration: int | None) -> bool:
 
 def calc_next_day():
     return lambda: (datetime.now() + timedelta(days=1)).replace(hour=0, minute=0, second=0)
+
+
+def sort_data(times: list) -> list:
+    return sorted(times, key=lambda x: datetime.strptime(x.split(" - ")[1], "%H:%M").time())
