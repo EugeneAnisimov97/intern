@@ -41,7 +41,7 @@ class SchedulesCreate(BaseModel):
     user_id: int
 
 
-@app.post('/schedule', status_code=201 ,response_model=dict)
+@app.post('/schedule', status_code=201, response_model=dict)
 async def create_schedule(schedule: SchedulesCreate):
     '''Создает расписание приема лекарств'''
     async with async_session() as session:

@@ -1,0 +1,21 @@
+// Use DBML to define your database structure
+// Docs: https://dbml.dbdiagram.io/docs
+
+
+
+Table users {
+  id integer [primary key]
+}
+
+Table schedules {
+  id integer [primary key]
+  medicine varchar [not null]
+  periodicity integer [not null]
+  duration integer
+  user_id integer [not null]
+  date_created datetime [not null]
+  is_active  bool [not null]
+  start_treatment datetime
+}
+
+Ref user_schedule: schedules.user_id > users.id // many-to-one
