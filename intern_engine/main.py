@@ -1,12 +1,18 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
-from intern_engine.models import Users, Schedules, Base
-from intern_engine.date_utils import get_schedule_on_day, get_appointment, check_actual, sort_data
+from intern_engine.models import Users, Base
 from dotenv import load_dotenv
-from sqlalchemy import select
 import os
+import threading
+from intern_engine.grpc_server.grpc_server import serve
+from intern_engine.services.services import (
+    create_schedule_service,
+    get_user_schedules_service,
+    read_schedule_service,
+    get_next_appointment_service
+)
 
 
 load_dotenv()
@@ -14,6 +20,8 @@ DATABASE_URL = os.getenv('DATABASE_URL')
 engine = create_async_engine(DATABASE_URL)
 async_session = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 app = FastAPI()
+grpc_thread = threading.Thread(target=serve, daemon=True)
+grpc_thread.start()
 
 
 @app.on_event('startup')
@@ -41,66 +49,33 @@ class SchedulesCreate(BaseModel):
     user_id: int
 
 
-@app.post('/schedule', status_code=201, response_model=dict)
+@app.post('/schedule', status_code=201, response_model=dict, tags=["Schedule"])
 async def create_schedule(schedule: SchedulesCreate):
     '''Создает расписание приема лекарств'''
     async with async_session() as session:
-        user = await session.execute(select(Users).where(Users.id == schedule.user_id))
-        if not user.scalars().first():
-            raise HTTPException(status_code=404, detail="Зверь не найден")
-        plan = Schedules(
-            medicine=schedule.medicine,
-            periodicity=schedule.periodicity,
-            duration=schedule.duration,
-            user_id=schedule.user_id
-        )
-        session.add(plan)
-        await session.commit()
-        await session.refresh(plan)
-    return {'id': plan.id}
+        result = await create_schedule_service(session, schedule)
+        return result
 
 
-@app.get('/schedules', response_model=list[int])
+@app.get('/schedules', response_model=list[int], tags=["Schedules"])
 async def get_user_schedules(user_id: int):
     '''Возвращает список расписаний пользователя'''
     async with async_session() as session:
-        schedules = await session.execute(
-            select(Schedules).where(Schedules.user_id == user_id)
-        )
-        schedules = schedules.scalars().all()
-        if not schedules:
-            raise HTTPException(status_code=404, detail="Расписание не найдено")
-        return [item.id for item in schedules]
+        schedules = await get_user_schedules_service(session, user_id)
+        return schedules
 
 
-@app.get('/schedule', response_model=list[str])
+@app.get('/schedule', response_model=list[str], tags=["Schedule"])
 async def read_schedule(user_id: int, schedule_id: int):
     '''Возвращает данные о выбранном расписании с графиком приема на день'''
     async with async_session() as session:
-        shedule = await session.execute(select(Schedules).where((Schedules.id == schedule_id) & (Schedules.user_id == user_id)))
-        shedule = shedule.scalars().first()
-        if not shedule:
-            raise HTTPException(status_code=404, detail='Расписание не найдено')
-        return get_schedule_on_day(shedule.periodicity, shedule.medicine)
+        shedule = await read_schedule_service(session, user_id, schedule_id)
+        return shedule
 
 
-@app.get('/next_taking', response_model=list[str])
+@app.get('/next_taking', response_model=list[str], tags=["Appointments"])
 async def get_next_appointment(user_id: int):
     '''Возвращает данные о таблетках, которые необходимо принять в ближайшие период'''
     async with async_session() as session:
-        schedules = await session.execute(select(Schedules).where(Schedules.user_id == user_id))
-        schedules = schedules.scalars().all()
-        taking = []
-        if not schedules:
-            raise HTTPException(status_code=404, detail='Расписание не найдено')
-        for schedule in schedules:
-            if not check_actual(schedule.start_treatment, schedule.duration):
-                schedule.is_active = False
-                await session.commit()
-            if schedule.is_active:
-                schedule_for_user = get_schedule_on_day(schedule.periodicity, schedule.medicine)
-                taking_time = get_appointment(schedule_for_user, schedule.start_treatment)  # Обращаю внимание, что если создали сегодня, лечение начнется со след. дня и ближайшую таблетку не получите
-                taking.extend(taking_time)
-        if not taking:
-            raise HTTPException(status_code=200, detail='На сегодня приема нет')
-        return sort_data(taking)
+        schedules = await get_next_appointment_service(session, user_id)
+        return schedules

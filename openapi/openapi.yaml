@@ -1,0 +1,181 @@
+openapi: 3.0.0
+info:
+  title: FastAPI
+  version: 0.1.0
+paths:
+  /schedule:
+    post:
+      tags:
+        - Schedule
+      summary: Create Schedule
+      description: Создает расписание приема лекарств
+      operationId: create_schedule_schedule_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SchedulesCreate'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                title: Response Create Schedule Schedule Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    get:
+      tags:
+        - Schedule
+      summary: Read Schedule
+      description: Возвращает данные о выбранном расписании с графиком приема на день
+      operationId: read_schedule_schedule_get
+      parameters:
+        - name: user_id
+          in: query
+          required: true
+          schema:
+            type: integer
+            title: User Id
+        - name: schedule_id
+          in: query
+          required: true
+          schema:
+            type: integer
+            title: Schedule Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+                title: Response Read Schedule Schedule Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /schedules:
+    get:
+      tags:
+        - Schedules
+      summary: Get User Schedules
+      description: Возвращает список расписаний пользователя
+      operationId: get_user_schedules_schedules_get
+      parameters:
+        - name: user_id
+          in: query
+          required: true
+          schema:
+            type: integer
+            title: User Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: integer
+                title: Response Get User Schedules Schedules Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /next_taking:
+    get:
+      tags:
+        - Appointments
+      summary: Get Next Appointment
+      description: 'Возвращает данные о таблетках, которые необходимо принять в ближайшие период'
+      operationId: get_next_appointment_next_taking_get
+      parameters:
+        - name: user_id
+          in: query
+          required: true
+          schema:
+            type: integer
+            title: User Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+                title: Response Get Next Appointment Next Taking Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+components:
+  schemas:
+    HTTPValidationError:
+      properties:
+        detail:
+          type: array
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          title: Detail
+      type: object
+      title: HTTPValidationError
+    SchedulesCreate:
+      properties:
+        medicine:
+          type: string
+          title: Medicine
+        periodicity:
+          type: integer
+          title: Periodicity
+        duration:
+          type: integer
+          nullable: true
+          title: Duration
+        user_id:
+          type: integer
+          title: User Id
+      type: object
+      required:
+        - medicine
+        - periodicity
+        - duration
+        - user_id
+      title: SchedulesCreate
+    ValidationError:
+      properties:
+        loc:
+          type: array
+          items:
+            anyOf:
+              - type: string
+              - type: integer
+          title: Location
+        msg:
+          type: string
+          title: Message
+        type:
+          type: string
+          title: Error Type
+      type: object
+      required:
+        - loc
+        - msg
+        - type
+      title: ValidationError

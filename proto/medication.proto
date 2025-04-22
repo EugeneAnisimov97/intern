@@ -1,0 +1,58 @@
+syntax = "proto3";
+package intern;
+
+// Сервис для управления расписаниями
+service ScheduleService {
+    // Создание расписания
+    rpc CreateSchedule (SchedulesCreateRequest) returns (SchedulesCreateResponse);
+
+    // Получение списка расписаний пользователя
+    rpc GetUserSchedules (GetUserSchedulesRequest) returns (GetUserSchedulesResponse);
+
+    // Чтение конкретного расписания
+    rpc ReadSchedule (ReadScheduleRequest) returns (ReadScheduleResponse);
+
+    // Получение следующего приема
+    rpc GetNextAppointment (GetNextAppointmentRequest) returns (GetNextAppointmentResponse);
+}
+
+// Модель расписания создания
+message SchedulesCreateRequest {
+    string medicine = 1; // Название лекарства
+    int32 periodicity = 2; // Периодичность приема
+    int32 duration = 3; // Длительность лечения (опционально)
+    int32 user_id = 4; // ID пользователя
+}
+
+message SchedulesCreateResponse {
+    int32 id = 1; // ID созданного расписания
+}
+
+// Модель получения списка расписаний пользователя
+message GetUserSchedulesRequest {
+    int32 user_id = 1; // ID пользователя
+}
+
+message GetUserSchedulesResponse {
+    repeated int32 schedule_ids = 1; // Список ID расписаний
+}
+
+// Модель чтения расписания
+message ReadScheduleRequest {
+    int32 user_id = 1; // ID пользователя
+    int32 schedule_id = 2; // ID расписания
+}
+
+message ReadScheduleResponse {
+    repeated string schedule_data = 1; // График приема на день
+}
+
+// Модель следующего приема
+message GetNextAppointmentRequest {
+    int32 user_id = 1; // ID пользователя
+}
+
+message GetNextAppointmentResponse {
+    repeated string next_taking = 1; // Ближайшие приемы таблеток
+}
+

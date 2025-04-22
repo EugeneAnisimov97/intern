@@ -25,3 +25,15 @@ make start
 ```
 
 2. Переходите в [Документацию](http://127.0.0.1:8000/docs#/) для проверки работы API.
+
+## Кодогенерация
+
+1. Для openapi
+```
+make generateoa
+```
+
+2. Для proto
+```
+make generategrpc
+```

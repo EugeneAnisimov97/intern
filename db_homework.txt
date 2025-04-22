@@ -1,0 +1,89 @@
+3)  
+homework=> SELECT * FROM developers;
+                  id                  |       name        | department | geolocation  | last_known_ip | is_available
+--------------------------------------+-------------------+------------+--------------+---------------+--------------
+ d67206b7-023a-43c9-8b1c-ba1dc54897bc | James Smith       | backend    | (54.43,20.3) | 192.168.1.100 | t
+ 235324bc-5c61-4d80-962f-a69e00fde209 | Mary Johnson      | frontend   | (55.43,20.3) | 192.168.0.2   | f
+ be04bf8c-4132-4ab5-bfe3-647fe6486cf3 | John Williams     | ios        | (56.43,20.3) | 172.16.0.1    | t
+ 2a738798-6513-4da9-a8ef-e0e7658fdad3 | Patricia Brown    | android    | (57.43,20.3) | 10.0.0.1      | f
+ 39b756fe-c905-4f29-8042-4ba5c48f1fdc | Robert Jones      | backend    | (58.43,20.3) | 192.168.1.1   | t
+ 68b1266b-40a8-4b7d-9ff2-7fbfc3b3602a | James Brown       | frontend   | (59.43,20.3) | 192.168.1.101 | t
+ 7779b56e-7ea9-4a9a-8805-d4c618084d4f | Mary Williams     | ios        | (53.43,20.3) | 192.168.0.3   | f
+ f316961d-c01e-4d0d-bac0-11a1b62b6910 | John Jones        | android    | (52.43,20.3) | 172.16.0.2    | t
+ 198051f2-814a-4408-ab65-5fa240a95e36 | Patricia Smith    | backend    | (51.43,20.3) | 10.0.0.2      | f
+ 35a03732-f422-4ac6-a387-c0411237feff | Robert Johnson    | frontend   | (54.43,11.3) | 192.168.1.2   | t
+ 66ba18f3-1642-4f41-8bdc-aa5aa2882d1d | James Williams    | ios        | (54.43,21.3) | 192.168.1.102 | t
+ 5a4dea69-c9d7-4880-9043-69ea255123a3 | Mary Brown        | android    | (54.43,22.3) | 192.168.0.4   | f
+ b4bc9821-3152-45f9-a39e-cad948d17560 | John Smith        | backend    | (54.43,23.3) | 172.16.0.3    | t
+ 385792ac-6d9c-4c36-b597-0b1a2fbd6722 | Patricia Johnson  | frontend   | (54.43,12.3) | 10.0.0.3      | f
+ 2391cff1-e9d1-4eec-accf-5ae2bf2c2d3f | Robert Williams   | ios        | (54.43,24.3) | 192.168.1.3   | t
+ 48131f34-3b95-49bd-9715-5f51d509d6c8 | James Jones       | android    | (54.43,25.3) | 192.168.1.103 | t
+ 8e00f947-6bae-46ec-bb91-b5ee6cb6723b | Mary Smith        | backend    | (54.43,26.3) | 192.168.0.5   | f
+ 397d0e6f-abaa-49a1-8f30-ce828da66103 | John Johnson      | frontend   | (54.43,27.3) | 172.16.0.4    | t
+ 33f83df5-2e8a-4fbd-b6da-04eb48e8cba3 | Patricia Williams | ios        | (54.43,28.3) | 10.0.0.4      | f
+ 768057d3-81ff-47dc-80ef-08ff558bb9e1 | Robert Brown      | android    | (54.43,29.3) | 192.168.1.4   | t
+(20 rows)
+
+
+4)
+                         QUERY PLAN
+-------------------------------------------------------------
+ Seq Scan on developers  (cost=0.00..16.50 rows=3 width=129)
+   Filter: (name ~~ 'James%'::text)
+(2 rows)
+
+                         QUERY PLAN
+-------------------------------------------------------------
+ Seq Scan on developers  (cost=0.00..16.50 rows=3 width=129)
+   Filter: (department = 'backend'::text)
+(2 rows)
+
+                         QUERY PLAN
+-------------------------------------------------------------
+ Seq Scan on developers  (cost=0.00..16.50 rows=3 width=129)
+   Filter: (last_known_ip = '192.168.1.10'::inet)
+(2 rows)
+
+                          QUERY PLAN
+---------------------------------------------------------------
+ Seq Scan on developers  (cost=0.00..15.20 rows=260 width=129)
+   Filter: is_available
+(2 rows)
+
+Создание индексов
+CREATE INDEX idx_name ON developers (name);
+CREATE INDEX idx_department ON developers (department);
+CREATE INDEX idx_last_known_ip ON developers (last_known_ip);
+CREATE INDEX idx_is_available ON developers (is_available);
+CREATE INDEX idx_geolocation ON developers USING gist (geolocation);
+
+
+6)
+homework=> EXPLAIN SELECT * FROM developers WHERE name LIKE 'James%';
+EXPLAIN SELECT * FROM developers WHERE department = 'backend';
+EXPLAIN SELECT * FROM developers WHERE last_known_ip = '192.168.1.10';
+EXPLAIN SELECT * FROM developers WHERE is_available = TRUE;
+                         QUERY PLAN
+------------------------------------------------------------
+ Seq Scan on developers  (cost=0.00..1.25 rows=1 width=129)
+   Filter: (name ~~ 'James%'::text)
+(2 rows)
+
+                         QUERY PLAN
+------------------------------------------------------------
+ Seq Scan on developers  (cost=0.00..1.25 rows=1 width=129)
+   Filter: (department = 'backend'::text)
+(2 rows)
+
+                         QUERY PLAN
+------------------------------------------------------------
+ Seq Scan on developers  (cost=0.00..1.25 rows=1 width=129)
+   Filter: (last_known_ip = '192.168.1.10'::inet)
+(2 rows)
+
+                         QUERY PLAN
+-------------------------------------------------------------
+ Seq Scan on developers  (cost=0.00..1.20 rows=10 width=129)
+   Filter: is_available
+(2 rows)
+

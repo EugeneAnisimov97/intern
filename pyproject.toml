@@ -8,6 +8,8 @@ dependencies = [
     "asyncpg>=0.30.0",
     "dotenv>=0.9.9",
     "fastapi>=0.115.11",
+    "grpcio-tools>=1.71.0",
+    "openapi-python-client>=0.24.3",
     "python-dotenv>=1.0.1",
     "sqlalchemy>=2.0.38",
     "uvicorn>=0.34.0",
@@ -16,4 +18,6 @@ dependencies = [
 [dependency-groups]
 dev = [
     "flake8>=7.1.2",
+    "grpcio-tools>=1.71.0",
+    "openapi-python-client>=0.24.3",
 ]
